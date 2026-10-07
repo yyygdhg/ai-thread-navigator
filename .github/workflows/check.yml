@@ -1,0 +1,25 @@
+name: Script syntax
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Check userscript and test helpers
+        run: |
+          node --version
+          node --check chatgpt-thread-navigator.user.js
+          node --check tests/prepare-fixtures.cjs
+          node --check tests/serve.cjs

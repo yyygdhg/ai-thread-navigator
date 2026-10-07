@@ -1,0 +1,51 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>Claude / 豆包适配验证</title>
+<style>*{box-sizing:border-box}html{color-scheme:light}body{font:14px/1.6 system-ui;margin:0;color:#222;background:white}.toolbar{position:fixed;right:10px;top:10px;z-index:20;background:#eee;padding:12px;border-radius:12px;width:420px;max-height:90vh;overflow:auto}button{padding:5px 10px}aside{position:fixed;left:0;top:0;width:220px;height:100vh;background:#f5f5f5;padding:20px}aside a,aside [role=button]{display:block;margin:20px 0}.closed aside{transform:translateX(-100%);pointer-events:none}main{height:100vh;margin-left:220px}.closed main{margin-left:0}.thread{height:100%;overflow:auto}.messages{width:min(650px,calc(100% - 160px));margin:auto;padding:90px 0 600px}.user{margin:25px 0 0 70px;padding:18px;background:#eee;border-radius:14px;min-height:90px}.assistant{padding:30px 0;min-height:180px}.toggle{position:fixed;left:230px;top:10px;z-index:15}.closed .toggle{left:8px}#results{white-space:pre-wrap;font-size:12px}.dark{color-scheme:dark}.dark body{background:#171717;color:#eee}.dark aside,.dark .toolbar,.dark .user{background:#292929}</style>
+<div class="toolbar"><b id="platform"></b> · 3.1.0 <button id="run">运行验证</button><div id="summary">尚未运行</div><pre id="results"></pre></div>
+<aside><a id="nav">另一条聊天</a><a id="modified">组合键聊天</a><div id="custom" role="button">无链接聊天条目</div><div id="new" role="button">新对话<span> Ctrl Shift K</span></div><button id="menu">聊天菜单</button></aside>
+<button class="toggle"></button><main><div class="thread"><div class="messages"></div></div></main>
+<script>
+const site=new URLSearchParams(location.search).get('site')==='doubao'?'doubao':'claude';
+document.getElementById('platform').textContent=site==='doubao'?'豆包':'Claude';
+const sidebar=document.querySelector('aside'),toggle=document.querySelector('.toggle'),fixture=document.querySelector('.messages');
+if(site==='doubao'){sidebar.id='flow_chat_sidebar';fixture.dataset.testid='message-list';document.getElementById('custom').dataset.testid='chat_list_thread_item';document.getElementById('new').dataset.testid='create_conversation_button'}
+else{sidebar.className='z-sidebar';document.querySelector('.thread').dataset.autoscrollContainer='true';document.getElementById('new').textContent='New chat'}
+const prefix=site==='doubao'?'/chat/':'/chat/';let clicks=0;
+function setOpen(open){document.body.classList.toggle('closed',!open);toggle.textContent=open?'收起':'展开';if(site==='doubao'){toggle.dataset.testid=open?'siderbar_close_btn':'siderbar_closed_status_btn';toggle.setAttribute('aria-label',open?'收起侧栏':'显示侧栏');toggle.removeAttribute('aria-expanded')}else{toggle.setAttribute('aria-label','Toggle sidebar');toggle.removeAttribute('aria-expanded')}}
+setOpen(true);toggle.addEventListener('click',()=>{clicks++;setOpen(document.body.classList.contains('closed'))});
+for(const [id,name]of[['nav','next'],['modified','modified']]){const a=document.getElementById(id);a.href=prefix+name;a.addEventListener('click',e=>{e.preventDefault();if(e.ctrlKey)return;history.pushState({},'',a.getAttribute('href'))})}
+document.getElementById('custom').addEventListener('click',()=>history.pushState({},'',prefix+'custom'));
+document.getElementById('new').addEventListener('click',()=>history.pushState({},'',site==='claude'?'/new':'/chat/'));
+function build(count=5){fixture.replaceChildren();for(let i=0;i<count;i++){
+const user=document.createElement('div');user.className='user';user.dataset.testid=site==='claude'?'user-message':'send_message';user.textContent=`提问 ${i+1}：这一轮应对应哪一个回答？`;
+const answer=document.createElement('div');answer.className='assistant';answer.dataset.messageId='answer-'+i;
+if(site==='claude'){const shell=document.createElement('div');shell.dataset.testRenderCount='1';shell.append(user);fixture.append(shell);answer.classList.add('font-claude-response');answer.dataset.author='assistant';answer.innerHTML=`<div class="font-claude-response"><p>回答 ${i+1}：这是对应的回答正文。</p></div><button>复制</button>`}
+else{fixture.append(user);answer.dataset.testid='receive_message';answer.innerHTML=`<p>回答 ${i+1}：这是对应的回答正文。</p><button>复制</button>`}
+fixture.append(answer)}}
+build();const script=document.createElement('script');script.src='/tests/fixture-'+site+'.js';document.body.append(script);
+</script>
+<script>
+const pause=ms=>new Promise(r=>setTimeout(r,ms));const ui=()=>document.getElementById('cgpt-thread-navigator').shadowRoot;const bars=()=>[...ui().querySelectorAll('.tick')];const report=[];
+function check(name,ok,detail=''){report.push({name,pass:!!ok,detail});document.getElementById('results').textContent=report.map(t=>(t.pass?'PASS ':'FAIL ')+t.name+(t.detail?' — '+t.detail:'')).join('\n')}
+document.getElementById('run').addEventListener('click',async()=>{document.getElementById('run').disabled=true;document.getElementById('summary').textContent='验证中';report.length=0;try{
+await pause(650);check('首次加载保留展开状态',!document.body.classList.contains('closed')&&clicks===0);check('平台消息识别为五轮',bars().length===5);
+bars()[2].focus();await pause(50);check('提问与回答正确配对',ui().querySelector('.question').textContent.includes('提问 3')&&ui().querySelector('.answer').textContent.includes('回答 3'));check('嵌套回答不重复且排除操作按钮',bars().length===5&&!ui().querySelector('.answer').textContent.includes('复制'));
+const ticks=ui().querySelector('.ticks'),rail=ui().querySelector('.rail');rail.dispatchEvent(new PointerEvent('pointerenter'));rail.dispatchEvent(new PointerEvent('pointermove',{clientY:bars()[3].getBoundingClientRect().top+8,pointerType:'mouse'}));await pause(80);check('鼠标移动切换预览及波浪中心',ui().querySelector('.question').textContent.includes('提问 4')&&Number(bars()[3].style.getPropertyValue('--scale'))>Number(bars()[2].style.getPropertyValue('--scale')));
+ui().querySelector('.star').click();check('本地书签可切换',bars()[3].hasAttribute('data-star'));ui().querySelector('.star').click();
+bars()[2].click();await pause(1150);check('点击刻度定位回答',Math.abs(fixture.querySelectorAll('.assistant')[2].getBoundingClientRect().top-84)<38);
+bars()[1].focus();ui().querySelector('.question').click();await pause(1100);check('预览标题定位提问',Math.abs(fixture.querySelectorAll('.user')[1].getBoundingClientRect().top-84)<38);
+const before=clicks;document.getElementById('nav').click();await pause(1800);check('侧栏导航后仅收起一次',document.body.classList.contains('closed')&&clicks===before+1);
+history.replaceState({},'',prefix+'closed-origin');document.getElementById('nav').click();await pause(300);setOpen(true);await pause(1500);check('已收起时不误开，主动重开不被延迟收起',clicks===before+1&&!document.body.classList.contains('closed'));
+const ctrlCount=clicks;document.getElementById('modified').dispatchEvent(new MouseEvent('click',{bubbles:true,ctrlKey:true,button:0}));await pause(350);check('Ctrl 点击保留侧栏',clicks===ctrlCount);
+document.getElementById('menu').click();await pause(200);check('聊天菜单不触发导航或收栏',clicks===ctrlCount);
+history.pushState({},'',prefix+'programmatic');await pause(400);check('程序导航不强制收起',!document.body.classList.contains('closed'));
+if(site==='doubao'){document.getElementById('custom').click();await pause(450);check('非链接聊天条目也会收栏',document.body.classList.contains('closed'));setOpen(true)}
+document.getElementById('new').click();await pause(450);check('新聊天按钮导航后收栏',document.body.classList.contains('closed'));
+build(3);await pause(500);fixture.querySelectorAll('.assistant')[2].querySelector('p').textContent='流式更新的新回答';await pause(450);bars()[2].focus();check('流式回答自动更新',ui().querySelector('.answer').textContent.includes('流式更新的新回答'));
+const extra=document.createElement('div');extra.className=site==='claude'?'font-claude-response assistant':'assistant';if(site==='doubao')extra.dataset.testid='receive_message';extra.textContent='这一轮最终回答';fixture.append(extra);await pause(450);bars()[2].focus();check('连续 assistant 块采用最终回答',bars().length===3&&ui().querySelector('.answer').textContent.includes('最终回答'));
+build(4);await pause(450);check('新增轮次自动加入',bars().length===4);bars()[0].focus();ui().querySelector('.star').click();const savedKey=bars()[0].dataset.key;build(4);await pause(500);check('无原生消息 ID 时重新挂载仍保留书签',bars()[0].dataset.key===savedKey&&bars()[0].hasAttribute('data-star'));bars()[0].focus();ui().querySelector('.star').click();
+fixture.querySelector('.user').textContent='<img src=x onerror=alert(1)> 普通文本';await pause(450);bars()[0].focus();check('预览不执行消息中的 HTML',ui().querySelector('.question').textContent.startsWith('<img')&&ui().querySelector('.question img')===null);
+document.documentElement.classList.add('dark');await pause(100);check('深色主题适配',document.getElementById('cgpt-thread-navigator').hasAttribute('data-dark'));document.documentElement.classList.remove('dark');await pause(100);check('浅色主题适配',!document.getElementById('cgpt-thread-navigator').hasAttribute('data-dark'));
+if(site==='doubao'){history.replaceState({},'',prefix+'query-origin?cid=old');await pause(450);const a=document.getElementById('nav');a.href=prefix+'query-origin?cid=new';setOpen(true);a.click();build(1);await pause(650);check('同路径查询参数切换会收栏并清空旧预览',document.body.classList.contains('closed')&&bars().length===1)}
+const failed=report.filter(r=>!r.pass).length;document.getElementById('summary').textContent=failed?`${failed} 项失败`:`${report.length} 项全部通过`;
+}catch(e){check('未预期异常',false,e.message);document.getElementById('summary').textContent='运行失败'}document.getElementById('run').disabled=false});
+</script></html>

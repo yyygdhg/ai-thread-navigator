@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="zh-CN"><meta charset="utf-8"><title>导航脚本浏览器验证</title>
+<style>
+*{box-sizing:border-box}html{color-scheme:light}body{font:14px/1.6 system-ui;margin:0;background:#fff;color:#222}.toolbar{position:fixed;right:8px;top:8px;z-index:30;background:#eee;padding:10px;max-width:380px;max-height:80vh;overflow:auto;border-radius:10px}.toolbar button{padding:5px 12px}#app-shell-sidebar{position:fixed;left:0;top:0;width:220px;height:100vh;background:#f5f5f5;padding:25px 15px}.closed #app-shell-sidebar{width:0;padding:0;overflow:hidden}.sidebar-toggle{position:fixed;left:230px;top:10px;z-index:10}.closed .sidebar-toggle{left:8px}main{margin-left:220px;height:100vh}.closed main{margin-left:0}.thread{height:100%;overflow-y:auto}.thread.reverse{display:flex;flex-direction:column-reverse}.conversation{flex-shrink:0;width:min(680px,calc(100% - 150px));margin:auto;padding:70px 0 100px}.turn{min-height:320px;padding:25px 0}.prompt{background:#eee;padding:15px;border-radius:15px;margin-left:80px}.reply{padding:25px 0}.sr-only{position:absolute;width:1px;height:1px;overflow:hidden}a{display:block;margin:16px 0}#results{white-space:pre-wrap;font-size:12px} .dark{color-scheme:dark}.dark body{background:#171717;color:#ddd}.dark .toolbar,.dark #app-shell-sidebar{background:#292929}.dark .prompt{background:#303030}
+</style>
+<div class="toolbar"><button id="run" type="button">运行验证</button><span id="summary">尚未运行</span><pre id="results"></pre></div>
+<aside id="app-shell-sidebar"><b>测试聊天</b><a href="/c/nav-test" id="nav">侧栏聊天导航</a><a href="/c/modified-test" id="modified">组合键导航</a><button aria-label="聊天侧边栏选项">侧栏菜单</button></aside>
+<button class="sidebar-toggle" aria-controls="app-shell-sidebar" aria-expanded="true" aria-label="隐藏侧边栏">收起</button>
+<main><div class="thread"><div class="conversation" data-thread-find-target="conversation"></div></div></main>
+<script>
+let clickCount=0;
+const fixture=document.querySelector('.conversation');
+const toggle=document.querySelector('.sidebar-toggle');
+function setOpen(open){document.body.classList.toggle('closed',!open);toggle.setAttribute('aria-expanded',String(open));toggle.setAttribute('aria-label',open?'隐藏侧边栏':'显示侧边栏');toggle.textContent=open?'收起':'展开'}
+toggle.addEventListener('click',()=>{clickCount++;setOpen(toggle.getAttribute('aria-expanded')!=='true')});
+for(const a of document.querySelectorAll('aside a'))a.addEventListener('click',e=>{e.preventDefault();if(e.ctrlKey||e.metaKey||e.shiftKey)return;history.pushState({},'',a.getAttribute('href'))});
+function modern(count=8){fixture.replaceChildren();for(let i=0;i<count;i++){const t=document.createElement('div');t.className='turn';t.dataset.turnKey='modern-'+i;t.innerHTML=`<div data-chatgpt-search-unit-key="turn-${i}:0:user"><div data-user-message-bubble="true" class="prompt">提问 ${i+1}：怎样更快找到长对话中的回答？</div></div><div data-chatgpt-search-unit-key="turn-${i}:1:assistant" data-chatgpt-search-message-ids="answer-${i}" class="reply"><h4 class="sr-only" data-conversation-role="assistant">ChatGPT 说</h4><p>回答 ${i+1}：用对话刻度快速查看问题和回答，点击后直接返回对应的位置。</p><p>这是用于滚动定位验证的演示内容。</p><button>复制回答</button></div>`;fixture.append(t)}}
+function legacy(){fixture.replaceChildren();for(let i=0;i<4;i++){const u=document.createElement('article');u.dataset.testid='conversation-turn-'+(i*2);u.dataset.turn='user';u.className='turn';u.innerHTML=`<div data-message-author-role="user" data-message-id="legacy-${i}" class="prompt">旧页面提问 ${i+1}</div>`;const a=document.createElement('article');a.dataset.testid='conversation-turn-'+(i*2+1);a.dataset.turn='assistant';a.className='turn';a.innerHTML=`<div data-message-author-role="assistant" class="reply"><p>旧页面回答 ${i+1}</p></div>`;fixture.append(u,a)}}
+modern();
+</script>
+<script src="/chatgpt-thread-navigator.user.js"></script>
+<script>
+const pause=ms=>new Promise(r=>setTimeout(r,ms));
+const ui=()=>document.getElementById('cgpt-thread-navigator').shadowRoot;
+const ticks=()=>[...ui().querySelectorAll('.tick')];
+const report=[];
+function verify(name,condition,detail=''){report.push({name,pass:Boolean(condition),detail});document.getElementById('results').textContent=report.map(r=>(r.pass?'PASS ':'FAIL ')+r.name+(r.detail?' — '+r.detail:'')).join('\n')}
+document.getElementById('run').addEventListener('click',async()=>{
+document.getElementById('run').disabled=true;report.length=0;document.getElementById('summary').textContent='验证中';
+try{
+await pause(650);verify('首次加载不强制收起',toggle.getAttribute('aria-expanded')==='true'&&clickCount===0);verify('新版 DOM 识别完整轮数',ticks().length===8);
+ticks()[2].focus();await pause(50);verify('提问与回答预览正确配对',ui().querySelector('.question').textContent.includes('提问 3')&&ui().querySelector('.answer').textContent.includes('回答 3'));
+verify('不把复制按钮或无障碍前缀带入预览',!ui().querySelector('.answer').textContent.includes('复制回答')&&!ui().querySelector('.answer').textContent.includes('ChatGPT 说'));
+const widths=ticks().map(b=>Number(b.style.getPropertyValue('--scale')));verify('波浪中心最长且邻近递减',widths[2]>widths[1]&&widths[1]>widths[0]);
+ui().querySelector('.star').click();verify('收藏状态与本地标记同步',ticks()[2].hasAttribute('data-star')&&JSON.parse(localStorage.getItem('cgpt-turn-navigator:bookmarks:v1:'+location.pathname)).includes('modern-2'));
+ui().querySelector('.star').click();
+ticks()[2].click();await pause(1150);const reply=fixture.querySelectorAll('.reply')[2];verify('点击刻度定位回答',Math.abs(reply.getBoundingClientRect().top-84)<38,String(Math.round(reply.getBoundingClientRect().top))+'px');
+ticks()[1].focus();ui().querySelector('.question').click();await pause(1100);verify('点击预览标题定位提问',Math.abs(fixture.querySelectorAll('.prompt')[1].getBoundingClientRect().top-84)<38);
+setOpen(true);history.pushState({},'','/c/programmatic-test');await pause(500);verify('非侧栏程序导航不强制收起',toggle.getAttribute('aria-expanded')==='true');
+const before=clickCount;document.getElementById('nav').click();await pause(1900);verify('侧栏导航后只点击一次关闭按钮',toggle.getAttribute('aria-expanded')==='false'&&clickCount===before+1);
+const closedBefore=clickCount;history.replaceState({},'','/c/closed-origin');document.getElementById('nav').click();await pause(300);setOpen(true);await pause(1500);verify('已关闭时不误开，主动重开不被重试收起',clickCount===closedBefore&&toggle.getAttribute('aria-expanded')==='true');
+const modifiedBefore=clickCount;document.getElementById('modified').dispatchEvent(new MouseEvent('click',{bubbles:true,ctrlKey:true,button:0}));await pause(500);verify('Ctrl 点击不触发收栏',clickCount===modifiedBefore);
+history.replaceState({},'','/c/legacy-fixture');legacy();await pause(650);verify('旧版消息结构与轮数兼容',ticks().length===4);ticks()[0].focus();verify('旧版回答预览正确',ui().querySelector('.answer').textContent.includes('旧页面回答 1'));
+history.replaceState({},'','/c/stream-fixture');modern(2);await pause(650);fixture.querySelectorAll('.reply')[1].querySelector('p').textContent='流式回答第一段';await pause(450);ticks()[1].focus();verify('生成中的回答更新预览',ui().querySelector('.answer').textContent.includes('流式回答第一段'));
+const cached=ui().querySelector('.question').textContent;fixture.querySelector('[data-user-message-bubble]').parentElement.remove();await pause(450);ticks()[0].focus();verify('卸载内容时保留持久轮数和已读预览',ticks().length===2&&ui().querySelector('.question').textContent.includes('提问 1'));
+modern(3);await pause(450);verify('新增一轮自动加入刻度',ticks().length===3);
+fixture.querySelector('[data-user-message-bubble]').textContent='<img src=x onerror=alert(1)> 字符内容';await pause(450);ticks()[0].focus();verify('消息按纯文本显示，不解析 HTML',ui().querySelector('.question').textContent.startsWith('<img')&&ui().querySelector('.question img')===null);
+document.documentElement.classList.add('dark');await pause(100);verify('深色主题实时适配',document.getElementById('cgpt-thread-navigator').hasAttribute('data-dark'));document.documentElement.classList.remove('dark');await pause(100);verify('浅色主题实时适配',!document.getElementById('cgpt-thread-navigator').hasAttribute('data-dark'));
+modern(6);setOpen(false);document.querySelector('.thread').classList.add('reverse');await pause(500);ticks()[2].click();await pause(1150);verify('负 scrollTop 的反向滚动容器定位',Math.abs(fixture.querySelectorAll('.reply')[2].getBoundingClientRect().top-84)<38,String(Math.round(fixture.querySelectorAll('.reply')[2].getBoundingClientRect().top))+'px');
+history.replaceState({},'','/c/pop-fixture');modern(1);window.dispatchEvent(new PopStateEvent('popstate'));await pause(650);verify('返回事件刷新列表且保持侧栏状态',ticks().length===1&&toggle.getAttribute('aria-expanded')==='false');
+const failed=report.filter(r=>!r.pass).length;document.getElementById('summary').textContent=failed?`${failed} 项失败`:`${report.length} 项全部通过`;
+}catch(error){verify('未预期异常',false,error.message);document.getElementById('summary').textContent='运行失败'}
+document.getElementById('run').disabled=false;
+});
+</script></html>

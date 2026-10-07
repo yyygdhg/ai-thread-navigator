@@ -1,0 +1,9 @@
+node_modules/
+.DS_Store
+Thumbs.db
+tests/fixture-claude.js
+tests/fixture-doubao.js
+/verification.png
+/verification.txt
+/verification-3.1.0*.png
+/verification-3.1.0.txt

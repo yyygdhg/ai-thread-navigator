@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="720" viewBox="0 0 1440 720" role="img" aria-labelledby="title desc">
+  <title id="title">AI Thread Navigator — 长对话，自有章法</title>
+  <desc id="desc">由 Liminal 创作的 AI 对话导航脚本封面。右侧以示意界面呈现波浪刻度和提问回答预览，支持 ChatGPT、Claude 和豆包。</desc>
+  <defs>
+    <linearGradient id="bg" x2="1" y2="1"><stop stop-color="#10121d"/><stop offset="1" stop-color="#171222"/></linearGradient>
+    <linearGradient id="type" x2="1" y2=".5"><stop stop-color="#faf8ff"/><stop offset="1" stop-color="#b4a8f6"/></linearGradient>
+    <linearGradient id="accent"><stop stop-color="#9d89ee"/><stop offset="1" stop-color="#70d2d8"/></linearGradient>
+    <linearGradient id="panel" x2="0" y2="1"><stop stop-color="#222332"/><stop offset="1" stop-color="#1a1b27"/></linearGradient>
+    <radialGradient id="glow"><stop stop-color="#7b58c7" stop-opacity=".24"/><stop offset="1" stop-color="#7b58c7" stop-opacity="0"/></radialGradient>
+    <pattern id="grid" width="60" height="60" patternUnits="userSpaceOnUse"><path d="M60 0H0V60" fill="none" stroke="#c9c1f2" stroke-opacity=".035"/></pattern>
+  </defs>
+  <rect width="1440" height="720" rx="28" fill="url(#bg)"/>
+  <rect width="1440" height="720" rx="28" fill="url(#grid)"/>
+  <ellipse cx="1110" cy="250" rx="460" ry="390" fill="url(#glow)"/>
+  <rect x="32" y="32" width="1376" height="656" rx="22" fill="none" stroke="#ffffff" stroke-opacity=".07"/>
+  <g font-family="Segoe UI,Arial,PingFang SC,Microsoft YaHei,sans-serif">
+    <rect x="82" y="82" width="34" height="34" rx="9" fill="url(#accent)"/>
+    <path d="M90 92h8m-8 7h19m-19 7h12" stroke="#151725" stroke-width="2" stroke-linecap="round"/>
+    <text x="131" y="105" fill="#b5b0cd" font-size="14" letter-spacing="2.5">A LITTLE LESS SCROLLING. A LOT MORE CLARITY.</text>
+    <text x="82" y="233" fill="url(#type)" font-size="80" font-weight="700" letter-spacing="-3">AI Thread</text>
+    <text x="78" y="322" fill="url(#type)" font-size="80" font-weight="700" letter-spacing="-3">Navigator</text>
+    <text x="84" y="386" fill="#e4deef" font-size="30" font-weight="500" letter-spacing="4">长对话，自有章法。</text>
+    <text x="84" y="433" fill="#9c96b1" font-size="17">让重要的提问与回答，始终触手可及。</text>
+    <g font-size="13" fill="#d2cede" text-anchor="middle">
+      <rect x="84" y="476" width="102" height="32" rx="16" fill="#ffffff" fill-opacity=".04" stroke="#ffffff" stroke-opacity=".12"/><text x="135" y="497">ChatGPT</text>
+      <rect x="198" y="476" width="102" height="32" rx="16" fill="#ffffff" fill-opacity=".04" stroke="#ffffff" stroke-opacity=".12"/><text x="249" y="497">Claude</text>
+      <rect x="312" y="476" width="102" height="32" rx="16" fill="#ffffff" fill-opacity=".04" stroke="#ffffff" stroke-opacity=".12"/><text x="363" y="497">豆包</text>
+    </g>
+    <text x="84" y="620" fill="#aaa3bd" font-size="13" letter-spacing="1.5">BY LIMINAL · @YYYGDHG</text>
+    <text x="84" y="646" fill="#706b80" font-size="12">ONE USERSCRIPT. THREE AI PLATFORMS. YOUR CONVERSATIONS.</text>
+    <rect x="704" y="140" width="650" height="446" rx="24" fill="url(#panel)" stroke="#ffffff" stroke-opacity=".09"/>
+    <circle cx="730" cy="166" r="4" fill="#6c647f"/><circle cx="746" cy="166" r="4" fill="#6c647f"/><circle cx="762" cy="166" r="4" fill="#6c647f"/>
+    <text x="786" y="171" fill="#8d879f" font-size="11" letter-spacing="1.5">CONVERSATION / OVERVIEW</text>
+    <path d="M704 188h650" stroke="#ffffff" stroke-opacity=".05"/>
+    <g fill="#c6bfd8" opacity=".1"><rect x="842" y="214" width="340" height="7" rx="3"/><rect x="842" y="232" width="262" height="7" rx="3"/><rect x="842" y="507" width="340" height="7" rx="3"/><rect x="842" y="525" width="286" height="7" rx="3"/><rect x="842" y="543" width="318" height="7" rx="3"/></g>
+    <g stroke-linecap="round" stroke-width="3">
+      <path d="M736 285h9" stroke="#777085"/><path d="M736 304h12" stroke="#868092"/><path d="M736 323h20" stroke="#a49bb5"/><path d="M736 342h34" stroke="#c8bde0"/><path d="M736 361h49" stroke="#f4f0ff"/><path d="M736 380h34" stroke="#c8bde0"/><path d="M736 399h20" stroke="#a49bb5"/><path d="M736 418h12" stroke="#868092"/><path d="M736 437h9" stroke="#777085"/><path d="M736 456h9" stroke="#6c6678"/>
+    </g>
+    <text x="735" y="486" fill="#827a92" font-size="10">12 轮</text>
+    <rect x="804" y="278" width="518" height="205" rx="19" fill="#12121a" opacity=".35"/>
+    <rect x="802" y="274" width="518" height="205" rx="19" fill="#30303b" stroke="#9990ad" stroke-opacity=".28"/>
+    <text x="826" y="306" fill="#aaa3b5" font-size="11" letter-spacing="1">第 06 / 12 轮</text>
+    <path d="M1281 293v22l-7-5-7 5v-22a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" fill="none" stroke="#b5abbf" stroke-width="1.5"/>
+    <text x="826" y="340" fill="#f2eff5" font-size="21" font-weight="600">刚才那段实现，能带我回去吗？</text>
+    <g fill="#aaa3b4" font-size="16"><text x="826" y="376">把冗长的对话，变成可回访的章节。</text><text x="826" y="405">悬停预览上下文，点击直达提问或回答。</text><text x="826" y="434">把重要的一轮，留在书签里。</text></g>
+    <text x="826" y="459" fill="#878091" font-size="10">HOVER TO PREVIEW · CLICK TO RETURN · BOOKMARK TO REMEMBER</text>
+    <text x="1029" y="622" text-anchor="middle" fill="#8d849e" font-size="12" letter-spacing="1.3">NAVIGATE WITH CONTEXT. RETURN WITH CONFIDENCE.</text>
+    <text x="1029" y="646" text-anchor="middle" fill="#645c74" font-size="11">界面示意 · 实际效果随网站布局变化</text>
+  </g>
+</svg>
